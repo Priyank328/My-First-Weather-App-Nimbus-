@@ -4,8 +4,6 @@ Nimbus is a responsive weather app built with **plain HTML, CSS and JavaScript**
 
 **Live demo:** https://YOUR-USERNAME.github.io/nimbus-weather-app/
 
-![Nimbus screenshot](screenshot.png)
-
 ## ✨ Features
 
 - 🔎 **City search with autocomplete** (keyboard friendly: arrow keys, Enter, Esc)
