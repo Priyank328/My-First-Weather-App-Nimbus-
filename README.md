@@ -2,7 +2,7 @@
 
 Nimbus is a responsive weather app built with **plain HTML, CSS and JavaScript** (no frameworks, no build tools). Its look changes with the weather outside: colours fade between themes, and rain, snow, stars, clouds and lightning animate in the background.
 
-**Live demo:** https://YOUR-USERNAME.github.io/nimbus-weather-app/
+**Live demo:** https://Priyank328.github.io/nimbus-weather-app/
 
 ## ✨ Features
 
