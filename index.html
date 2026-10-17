@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Nimbus - a weather app that adapts its look to the sky outside.">
+  <title>Nimbus - Weather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="clear" data-time="day">
+
+  <!-- Background layers: gradient, animated canvas, lightning flash -->
+  <div id="bg"></div>
+  <canvas id="fx"></canvas>
+  <div id="flash"></div>
+
+  <div class="app">
+
+    <!-- ========== TOP BAR ========== -->
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+          <circle cx="12" cy="12" r="6" fill="#fde68a"/>
+          <path d="M9 24a6 6 0 0 1 1.2-11.9A8 8 0 0 1 25.6 14 5 5 0 0 1 24 24z" fill="#fff" opacity=".95"/>
+        </svg>
+        <span>Nimbus</span>
+      </div>
+
+      <form id="searchForm" class="search" autocomplete="off" role="search">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" type="search" placeholder="Search for a city..." aria-label="Search for a city"
+               aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false">
+        <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+      </form>
+
+      <button id="locateBtn" class="icon-btn" type="button" title="Use my location" aria-label="Use my location">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/>
+          <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 1v3M12 20v3M1 12h3M20 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="seg" role="group" aria-label="Temperature units">
+        <button type="button" data-unit="metric" class="active">&deg;C</button>
+        <button type="button" data-unit="imperial">&deg;F</button>
+      </div>
+    </header>
+
+    <div id="recent" class="recent" aria-label="Recent searches"></div>
+    <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+
+    <!-- ========== DASHBOARD ========== -->
+    <main id="dashboard" class="grid" aria-busy="true">
+
+      <!-- Hero: current conditions -->
+      <section class="card hero" aria-label="Current weather">
+        <div class="hero-top">
+          <div>
+            <h1 id="city">Loading...</h1>
+            <p id="region" class="muted"></p>
+            <p id="localTime" class="muted"></p>
+          </div>
+          <div id="heroIcon" class="hero-icon" aria-hidden="true">...</div>
+        </div>
+
+        <div class="hero-temp">
+          <span id="temp">--</span><span id="tempUnit" class="deg">&deg;C</span>
+        </div>
+        <p id="condition" class="condition">&nbsp;</p>
+        <p class="muted hero-range">
+          Feels like <b id="feels">--</b> &middot; High <b id="hi">--</b> &middot; Low <b id="lo">--</b>
+        </p>
+
+        <div class="advice">
+          <span id="adviceEmoji" class="advice-emoji" aria-hidden="true">:)</span>
+          <p id="advice">Fetching the sky...</p>
+        </div>
+      </section>
+
+      <!-- Stat tiles -->
+      <section class="stats" aria-label="Weather details">
+        <div class="card tile">
+          <span class="tile-label">Humidity</span>
+          <strong id="humidity">--</strong>
+          <div class="meter"><i id="humidityBar"></i></div>
+        </div>
+
+        <div class="card tile">
+          <span class="tile-label">Wind</span>
+          <strong id="wind">--</strong>
+          <span class="tile-sub"><span id="windArrow" class="wind-arrow" aria-hidden="true">&uarr;</span> <span id="windDir">--</span></span>
+        </div>
+
+        <div class="card tile">
+          <span class="tile-label">UV index (peak)</span>
+          <strong id="uv">--</strong>
+          <span id="uvLabel" class="tile-sub">--</span>
+          <div class="meter"><i id="uvBar"></i></div>
+        </div>
+
+        <div class="card tile">
+          <span class="tile-label">Pressure</span>
+          <strong id="pressure">--</strong>
+          <span class="tile-sub">hPa</span>
+        </div>
+
+        <div class="card tile">
+          <span class="tile-label">Chance of rain today</span>
+          <strong id="rainChance">--</strong>
+          <div class="meter"><i id="rainBar"></i></div>
+        </div>
+
+        <div class="card tile">
+          <span class="tile-label">Cloud cover</span>
+          <strong id="clouds">--</strong>
+          <div class="meter"><i id="cloudBar"></i></div>
+        </div>
+      </section>
+
+      <!-- Hourly -->
+      <section class="card hourly" aria-label="Hourly forecast">
+        <h2>Next 24 hours</h2>
+        <div id="hourly" class="hourly-strip"></div>
+      </section>
+
+      <!-- 7-day -->
+      <section class="card daily" aria-label="7-day forecast">
+        <h2>7-day forecast</h2>
+        <ul id="daily" class="daily-list"></ul>
+      </section>
+
+      <!-- Side column: sun + best time -->
+      <div class="side">
+        <section class="card sun" aria-label="Sunrise and sunset">
+          <h2>Sun</h2>
+          <svg id="sunArc" viewBox="0 0 300 130" aria-hidden="true">
+            <line x1="8" y1="110" x2="292" y2="110" class="horizon"/>
+            <path d="M20 110 A130 95 0 0 1 280 110" class="arc-track"/>
+            <path id="arcProgress" d="M20 110 A130 95 0 0 1 280 110" class="arc-progress"
+                  pathLength="100" stroke-dasharray="0 100"/>
+            <circle id="sunDot" r="9" cx="20" cy="110"/>
+          </svg>
+          <div class="sun-times">
+            <div><span class="tile-label">Sunrise</span><strong id="sunrise">--</strong></div>
+            <div class="center"><span id="daylight" class="muted"></span></div>
+            <div class="right"><span class="tile-label">Sunset</span><strong id="sunset">--</strong></div>
+          </div>
+        </section>
+
+        <section class="card walk" aria-label="Best time to go outside">
+          <h2>Best time to go outside</h2>
+          <p id="walkTime" class="walk-time">--</p>
+          <p id="walkWhy" class="muted">--</p>
+        </section>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      Weather data by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>
+      &middot; Built with plain HTML, CSS &amp; JavaScript
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
